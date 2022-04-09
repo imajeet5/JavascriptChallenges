@@ -52,4 +52,42 @@ const executeSequentially = async () => {
   console.log();
 };
 
-executeSequentially();
+// executeSequentially();
+
+/**
+ * Promise.all polyfill
+ * To implement this we will return a new promise that only resolves once each of the values of the array provided has resolved.
+ * Basically we will execute all the promise resolve at the same time.
+ * At the same time we will keep the result indexed
+ * https://medium.com/@copperwall/implementing-promise-all-575a07db509a#:~:text=all%20can%20be%20implemented%20using,the%20list%20and%20calls%20Promise.
+ */
+
+Promise.myall = function (promises) {
+  // we will return a new promise that will resolve when all the promises has been resolved
+  return new Promise((resolve, reject) => {
+    let results = [];
+    let completed = 0;
+    // this for each will be call on each promise to resolve, in this way all the promises will be resolved
+    // simultaneously
+    promises.forEach((value, index) => {
+      Promise.resolve(value)
+        .then((result) => {
+          results[index] = result;
+          completed++;
+          if (completed === promises.length) {
+            resolve(results);
+          }
+        })
+        .catch((err) => reject(err));
+    });
+  });
+};
+
+const timeDurations = [1000, 2000, 3000, 2500, 4000];
+
+const timePromises = timeDurations.map(asyncTimeout);
+
+Promise.myall(timePromises).then((r) => {
+  console.log('All promises resolved');
+  console.log(r);
+});
